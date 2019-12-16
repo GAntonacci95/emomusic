@@ -36,7 +36,6 @@ app = Flask(__name__)
 app.secret_key = os.environ['SESSION_SECRET']
 app.debug = True
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "GET":
@@ -45,14 +44,12 @@ def index():
 
     return redirect(url_for('index'))
 
-
 # callback for spotify login
 @app.route("/callback", methods=["GET"])
 def callback():
     if request.method == "GET":
         # render template
         return render_template("callback.html")
-
 
 # return chords progression in midi format
 @app.route("/emotion", methods=["POST"])
@@ -133,14 +130,12 @@ def get_device():
         if device['is_active']:
             return True
 
-
 # https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/
 # PUT METHOD : https://api.spotify.com/v1/me/player/play
 # SCOPE : user-modify-playback-state
 # REQUEST :
 #     body-parameters: {"uris": ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh"]}
-
-def play_track( uri_track):
+def play_track(uri_track):
     headers = {"Authorization": "Bearer %s" % session['token']}
     params = {'uris': [str(uri_track)]}
     # create request
@@ -148,7 +143,6 @@ def play_track( uri_track):
     # check required values
     assert response.status_code == 204
     return True
-
 
 def get_tracks():
     headers = {"Authorization": "Bearer %s" % session['token']}
@@ -160,25 +154,25 @@ def get_tracks():
     answer = response.json()
     # collect playlists
     playlist_links = []
-    # for each playlist extract track id
+    # for each playlist extract playlist reference
     for playlist in answer['items']:
         tracks = playlist['tracks']
         if tracks['total'] > 0:  # exclusion of empty playlists
-            playlist_links.append(tracks['href'])  # already unique links
+            playlist_links.append(tracks['href'])  # links are already unique
     # collect tracks
     track_ids = []
-    # for each tracks extract id
+    # for each playlist, retrieve the ids of all the songs contained in it
     params = {'fields': 'items(track(id))'}
-    for playlist_link in playlist_links:
+    for playlist_link in playlist_links: # TODO should introduce a delay among each playlist request
         response = requests.get(headers=headers, url=playlist_link, params=params)
         # check required values
         assert response.status_code == 200, response.content
         for track in response.json()['items']:
             track_ids.append(track['track']['id'])
-    # truncate tracks to maximum value (100)
+    # truncate track_ids quantity to maximum value (100)
     track_ids = np.unique(track_ids)
     track_ids = track_ids[0:99]
-    # convert tracks to string
+    # convert track_ids to string
     track_ids_str = np.array2string(track_ids, separator=',').translate({ord(i): None for i in "[] '\n"})
     # create request
     params = {'ids': track_ids_str}
@@ -189,7 +183,6 @@ def get_tracks():
     tracks_descriptors = response.json()['audio_features']
 
     return tracks_descriptors
-
 
 # input-structures
 #       tracks : [{                       emotions : {
