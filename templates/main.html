@@ -4,19 +4,38 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EmoMusic</title>
+    <title>emoMusic</title>
     <link rel="icon" href="/static/img/favicon.ico"/>
     <link rel="icon" href="/static/img/favicon.png" type="image/png"/>
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,700&display=swap" rel="stylesheet">
+    <!-- STYLE -->
+    <link href="/static/css/main.css" rel="stylesheet" type="text/css">
+    <!-- LIB IMPORT -->
+    <script type="text/javascript" src="/static/js/lib/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="/static/js/lib/webcam.min.js"></script>
+    <script type="text/javascript" src="/static/js/lib/p5.min.js"></script>
 </head>
 <body>
-<h1>EmoMusic</h1>
-<div>
-    <div id="login">
-        <h3>First, log in to spotify</h3>
-        <a href="{{ url }}">Log in</a>
+<div id="main-layer">
+    <div class="image gradient"></div>
+    <div id="background" class="image"></div>
+</div>
+<div id="login">
+    <div id="title">
+        <h1><span>emo</span>Music</h1>
+        <h3>Emotion recognition player manager</h3>
     </div>
-    <div id="loggedin">
+    <div id="services">
+        <h3>Connect your streaming services</h3>
+        <a id="spotify-button" href="{{ url }}">
+            <span>Connect</span>
+            <img src="/static/img/spotify_white.png" alt="spotify white logo"/>
+        </a>
     </div>
 </div>
+<footer>
+    Photo by Priscilla Du Preez on Unsplash
+</footer>
 </body>
 </html>

@@ -4,13 +4,20 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EmoMusic</title>
+    <title>emoMusic</title>
     <link rel="icon" href="/static/img/favicon.ico"/>
     <link rel="icon" href="/static/img/favicon.png" type="image/png"/>
-    <!-- JQUERY IMPORT -->
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,700&display=swap" rel="stylesheet">
+    <!-- STYLE -->
+    <link href="/static/css/main.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/emotion.css" rel="stylesheet" type="text/css">
+    <!-- LIB IMPORT -->
     <script type="text/javascript" src="/static/js/lib/jquery-3.4.1.min.js"></script>
-    <!-- WEBCAM.JS IMPORT -->
     <script type="text/javascript" src="/static/js/lib/webcam.min.js"></script>
+    <script type="text/javascript" src="/static/js/lib/p5.min.js"></script>
+    <!-- SCRIPT IMPORT -->
+    <script type="text/javascript" src="/static/js/sketch.js"></script>
 </head>
 <body>
 <script>
@@ -25,7 +32,10 @@
             request = $.ajax({
                 url: "/emotion",
                 type: "post",
-                data: {"photo" : data_uri},
+                data: {
+                    "photo" : data_uri,
+                    "token" : getToken()
+                },
                 dataType: "json"
             });
 
@@ -56,32 +66,21 @@
             jpeg_quality: 90
         });
         Webcam.attach( '#camera' );
-
-        // save token
-        requestToken = $.ajax({
-            url: "/optin",
-            type: "post",
-            data: {"token" : getToken()},
-            dataType: "json"
-        });
-
-        // Callback handler that will be called on success
-        requestToken.done(function (response, textStatus, jqXHR){
-            // Log a message to the console
-            console.log("Token saved!");
-        });
-
-        // Callback handler that will be called on failure
-        requestToken.fail(function (jqXHR, textStatus, errorThrown){
-            // Log the error to the console
-            console.error(
-                "Error on saving token " + textStatus, errorThrown
-            );
-        });
     });
 </script>
-<h1>Upload your face</h1>
-<div id="camera"></div>
-<button onclick="uploadImage()">Send Image</button>
+<div id="main-layer">
+    <div class="image color"></div>
+</div>
+<div id="login">
+    <div id="title">
+        <h1><span>emo</span>Music</h1>
+        <h3>Emotion recognition player manager</h3>
+    </div>
+    <div id="camera"></div>
+    <button onclick="uploadImage()">Send Image</button>
+</div>
+<footer>
+    Copyright
+</footer>
 </body>
 </html>

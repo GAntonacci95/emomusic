@@ -5,6 +5,11 @@ import numpy as np
 import requests
 from flask import Flask, redirect, render_template, request, url_for, session
 
+try:
+    from urllib import quote  # Python 2.X
+except ImportError:
+    from urllib.parse import quote  # Python 3+
+
 # azure env vars
 api_key_azure = os.environ['AZURE_APIKEY']
 uri_azure = os.environ['AZURE_URI']
@@ -21,10 +26,10 @@ scopes_spotify = 'user-read-playback-state user-modify-playback-state playlist-r
 # spotify auth url
 auth_url = 'https://accounts.spotify.com/authorize'
 auth_url += '?response_type=token'
-auth_url += '&client_id=' + client_id_spotify
-auth_url += '&scope=' + scopes_spotify
-auth_url += '&redirect_uri=' + redirect_uri_spotify
-auth_url += '&state=' + state_spotify
+auth_url += '&client_id=' + quote(client_id_spotify)
+auth_url += '&scope=' + quote(scopes_spotify)
+auth_url += '&redirect_uri=' + quote(redirect_uri_spotify, safe='')
+auth_url += '&state=' + quote(state_spotify)
 
 # flask server run
 app = Flask(__name__)
@@ -48,19 +53,15 @@ def callback():
         # render template
         return render_template("callback.html")
 
-# callback for spotify login
-@app.route("/optin", methods=["POST"])
-def optin():
-    if request.method == "POST":
-        # store token
-        req = request
-        session['token'] = request.values.get('token')
-        return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 # return chords progression in midi format
 @app.route("/emotion", methods=["POST"])
 def emotion():
     if request.method == "POST":
+        # check request value
+        assert request.values.get('token'), request.values.get('photo')
+        # store token
+        session['token'] = request.values.get('token')
         # get picture
         photo_base64 = request.values.get("photo")
         # remove base64 header
