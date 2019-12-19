@@ -1,3 +1,42 @@
 #camera {
-    display: none;
+  /*display: none;*/
 }
+#player {
+    font-family: "FontAwesome";
+  background: #ffffff;
+  opacity: 0.5;
+  position: absolute;
+  top: 95%;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 150px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 5px;
+  box-shadow: 5px 5px 15px;
+  z-index: 2;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  font-size: .8em;
+  justify-content: center;
+  color: #301CC9;
+}
+.play, .pause {
+  margin: 15px 25px;
+  color: #301CC9;
+}
+.play, .pause, .next, .previous, .option, .add, .volume, .shuffle {
+  transition: all .5s ease;
+
+}
+
+.play:hover {
+  color: #364F3C;
+}
+
+
+

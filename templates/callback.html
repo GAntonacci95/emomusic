@@ -10,6 +10,7 @@
     <!-- FONT -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,700&display=swap" rel="stylesheet">
     <!-- STYLE -->
+    <link href="/static/css/font-awesome.css" rel="stylesheet" type="text/css">
     <link href="/static/css/main.css" rel="stylesheet" type="text/css">
     <link href="/static/css/emotion.css" rel="stylesheet" type="text/css">
     <!-- LIB IMPORT -->
@@ -21,6 +22,23 @@
 </head>
 <body>
 <script>
+    let bkg_color = '#000046';
+
+    $(".pause").hide(); //hide pause button until clicked
+
+    //play button
+    $('.play').click(function(){
+        $('.play').hide();
+        $('.pause').show();
+    });
+
+    //pause button
+    $('.pause').click(function(){
+        $('.play').show();
+        $('.pause').hide();
+    });
+
+
     function getToken() {
         return window.location.href.substring(44, 230);
     }
@@ -41,8 +59,12 @@
 
             // Callback handler that will be called on success
             request.done(function (response, textStatus, jqXHR){
-                // Log a message to the console
-                console.log("Picture sent!");
+                if (response.emotions.happiness > 0.2) {
+                    bkg_color = 'yellow';
+                }
+                if (response.emotions.anger > 0.2) {
+                    bkg_color = 'red';
+                }
             });
 
             // Callback handler that will be called on failure
@@ -79,6 +101,15 @@
     <div id="camera"></div>
     <button onclick="uploadImage()">Send Image</button>
 </div>
+
+<!--<div id="player">-->
+<!--    <div class="controls">-->
+<!--        <div class="previous"><span class="fas fa-backward"></span></div>-->
+<!--        <div class="play"><span class="fas fa-play"></span></div>-->
+<!--        <div class="pause"><span class="fas fa-pause"></span></div>-->
+<!--        <div class="next"><span class="fas fa-forward"></span></div>-->
+<!--    </div>-->
+<!--</div>-->
 <footer>
     Copyright
 </footer>

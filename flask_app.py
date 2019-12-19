@@ -16,7 +16,7 @@ api_key_azure = os.environ['AZURE_APIKEY']
 uri_azure = os.environ['AZURE_URI']
 
 # default playlist
-playlist_id_default = "rkvm1mxp9hjxu6qcenz93k9n7"
+playlist_id_default = "2pHddKK7ZpHu6YUVNkZEWr"
 
 # spotify env vars
 client_id_spotify = os.environ['SPOTIFY_ID']
@@ -93,8 +93,12 @@ def emotion():
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
-            choose_track(emotions, tracks_descriptors)
-            return json.dumps({'success': True}), 200, {
+            chosen = choose_track(emotions, tracks_descriptors)
+            return json.dumps({
+                'success': True,
+                'emotions' : emotions,
+                'audio_features': chosen
+            }), 200, {
                 'ContentType': 'application/json'}
 
         else:
@@ -127,10 +131,12 @@ def get_device():
     assert req.status_code == 200, req.content
     response = req.json()
     # for each playlist extract track id
-    # WHICH OPTION? return len(response['devices']) > 0
-    for device in response['devices']:
-        if device['is_active']:
-            return True
+    if len(response['devices']) > 0:
+        return True
+
+    # for device in response['devices']:
+    #     if device['is_active']:
+    #         return True
 
 # FOR SOLE PREMIUM ACCOUNTS!
 # https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/
@@ -166,13 +172,21 @@ def get_tracks():
     track_ids = []
     # for each playlist, retrieve the ids of all the songs contained in it
     params = {'fields': 'items(track(id))'}
-    for playlist_link in playlist_links:
-        response = requests.get(headers=headers, url=playlist_link, params=params)
+    if True:
+        response = requests.get(headers=headers, url="https://api.spotify.com/v1/playlists/" + playlist_id_default)
         # check required values
         assert response.status_code == 200, response.content
-        for track in response.json()['items']:
+        for track in response.json()['tracks']['items']:
             track_ids.append(track['track']['id'])
-        time.sleep(0.005) # delay among each playlist request
+        time.sleep(0.005)  # delay among each playlist request
+    else:
+        for playlist_link in playlist_links:
+            response = requests.get(headers=headers, url=playlist_link, params=params)
+            # check required values
+            assert response.status_code == 200, response.content
+            for track in response.json()['items']:
+                track_ids.append(track['track']['id'])
+            time.sleep(0.005) # delay among each playlist request
     # truncate track_ids quantity to maximum value (100)
     track_ids = np.unique(track_ids)
     np.random.shuffle(track_ids)
@@ -257,5 +271,6 @@ def choose_track(emotions, tracks_descriptors):
         chosen = np.random.choice(tb_filtered)
         print(chosen)
         play_track(chosen['uri'])
+        return chosen;
     else:
         print('No track found, please adjust the implementation/thresholds =)')
