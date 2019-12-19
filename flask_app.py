@@ -234,7 +234,7 @@ def choose_track(emotions, tracks_descriptors):
         print(tb_filtered)
         if (emotions['anger'] > 0.8):
             tb_filtered = [t for t in tb_filtered if (t['tempo'] > 90 and t['tempo'] < 150 and
-                t['energy'] > 0.8 and t['loudness'] > 0.7)]
+                t['energy'] > 0.8 and t['loudness'] > -15)]
         else: # how could I distinguish fear from sadness?
             tb_filtered = [t for t in tb_filtered if (t['tempo'] > 70 and t['tempo'] < 100 and
                 t['energy'] > 0.2 and t['energy'] < 0.6 and t['loudness'] > -30 and t['loudness'] < -10)]
