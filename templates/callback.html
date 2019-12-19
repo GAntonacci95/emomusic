@@ -58,21 +58,22 @@
             });
 
             // Callback handler that will be called on success
-            request.done(function (response, textStatus, jqXHR){
-                if (response.emotions.happiness > 0.2) {
-                    bkg_color = 'yellow';
-                }
-                if (response.emotions.anger > 0.2) {
-                    bkg_color = 'red';
+            request.done(function (response){
+                if(response.emotions !== 'undefined') {
+                    if (response.emotions.happiness > 0.2) {
+                        bkg_color = 'yellow';
+                    }
+                    if (response.emotions.anger > 0.2) {
+                        bkg_color = 'red';
+                    }
                 }
             });
 
             // Callback handler that will be called on failure
-            request.fail(function (jqXHR, textStatus, errorThrown){
+            request.fail(function (response){
                 // Log the error to the console
-                console.error(
-                    "The following error occurred: "+
-                    textStatus, errorThrown
+                console.error("The following error occurred: "+
+                    response.responseJSON.message
                 );
             });
         });

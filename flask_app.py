@@ -37,6 +37,7 @@ app = Flask(__name__)
 app.secret_key = os.environ['SESSION_SECRET']
 app.debug = True
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if (request.method == "GET"):
@@ -45,12 +46,14 @@ def index():
 
     return redirect(url_for('index'))
 
+
 # callback for spotify login
 @app.route("/callback", methods=["GET"])
 def callback():
     if (request.method == "GET"):
         # render template
         return render_template("callback.html")
+
 
 # return chords progression in midi format
 @app.route("/emotion", methods=["POST"])
@@ -67,8 +70,10 @@ def emotion():
         # convert to bytes
         photo_byte = base64.b64decode(photo_base64)
 
+        # get device
+        device = get_device()
         # check active device
-        if (get_device()):
+        if device is not None:
             # assert required values
             assert uri_azure, api_key_azure
             assert photo_byte
@@ -92,18 +97,34 @@ def emotion():
             emotions = response_json[0]['faceAttributes']['emotion']
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
-
+            # get chosen track
             chosen = choose_track(emotions, tracks_descriptors)
-            return json.dumps({
-                'success': True,
-                'emotions' : emotions,
-                'audio_features': chosen
-            }), 200, {
-                'ContentType': 'application/json'}
+            if chosen is not None:
+                # play track
+                if play_track(chosen['uri'], device):
+                    return json.dumps({
+                        'success': True,
+                        'emotions': emotions,
+                        'audio_features': chosen
+                    }), 200, {'ContentType': 'application/json'}
+                else:
+                    return json.dumps({
+                        'success': False,
+                        'message': "Error during playback on your device"
+                    }), 404, {'ContentType': 'application/json'}
+
+            else:
+                return json.dumps({
+                    'success': False,
+                    'message': "Track not found for current emotion"
+                }), 404, {'ContentType': 'application/json'}
 
         else:
-            return json.dumps({'success': False, 'message': 'No active device available playing music'}), 200, {
-                'ContentType': 'application/json'}
+            return json.dumps({
+                'success': False,
+                'message': 'No active device available playing music'
+            }), 404, {'ContentType': 'application/json'}
+
 
 # https://developer.spotify.com/console/get-users-available-devices/#
 # GET METHOD : https://api.spotify.com/v1/me/player/devices
@@ -123,20 +144,23 @@ def emotion():
 #         } ]
 #     }
 def get_device():
-    headers = {"Authorization": "Bearer %s" %session['token']}
+    headers = {"Authorization": "Bearer %s" % session['token']}
     # search active devices
     # create request
-    req = requests.get(headers=headers, url="https://api.spotify.com/v1/me/player/devices")
+    response = requests.get(headers=headers, url="https://api.spotify.com/v1/me/player/devices")
     # check required values
-    assert req.status_code == 200, req.content
-    response = req.json()
+    assert response.status_code == 200, response.content
+    response = response.json()
     # for each playlist extract track id
     if len(response['devices']) > 0:
-        return True
+        for device in response['devices']:
+            if device['type'] == 'Computer':
+                return device
 
-    # for device in response['devices']:
-    #     if device['is_active']:
-    #         return True
+        return response['devices'][0]
+    else:
+        return None
+
 
 # FOR SOLE PREMIUM ACCOUNTS!
 # https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/
@@ -144,17 +168,18 @@ def get_device():
 # SCOPE : user-modify-playback-state
 # REQUEST :
 #     body-parameters: {"uris": ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh"]}
-def play_track(uri_track):
-    headers = {"Authorization": "Bearer %s" %session['token']}
+def play_track(uri_track, device):
+    headers = {"Authorization": "Bearer %s" % session['token']}
     params = {'uris': [str(uri_track)]}
     # create request
-    response = requests.put(headers=headers, data=json.dumps(params), url="https://api.spotify.com/v1/me/player/play")
+    response = requests.put(headers=headers, data=json.dumps(params), url="https://api.spotify.com/v1/me/player/play?device_id=" + str(device['id']))
     # check required values
     assert response.status_code == 204
     return True
 
+
 def get_tracks():
-    headers = {"Authorization": "Bearer %s" %session['token']}
+    headers = {"Authorization": "Bearer %s" % session['token']}
     # search music feature inside user's playlists
     # create request
     response = requests.get(headers=headers, url="https://api.spotify.com/v1/me/playlists")
@@ -170,8 +195,7 @@ def get_tracks():
             playlist_links.append(tracks['href'])  # links are already unique
     # collect tracks
     track_ids = []
-    # for each playlist, retrieve the ids of all the songs contained in it
-    params = {'fields': 'items(track(id))'}
+
     if True:
         response = requests.get(headers=headers, url="https://api.spotify.com/v1/playlists/" + playlist_id_default)
         # check required values
@@ -180,13 +204,15 @@ def get_tracks():
             track_ids.append(track['track']['id'])
         time.sleep(0.005)  # delay among each playlist request
     else:
+        # for each playlist, retrieve the ids of all the songs contained in it
+        params = {'fields': 'items(track(id))'}
         for playlist_link in playlist_links:
             response = requests.get(headers=headers, url=playlist_link, params=params)
             # check required values
             assert response.status_code == 200, response.content
             for track in response.json()['items']:
                 track_ids.append(track['track']['id'])
-            time.sleep(0.005) # delay among each playlist request
+            time.sleep(0.005)  # delay among each playlist request
     # truncate track_ids quantity to maximum value (100)
     track_ids = np.unique(track_ids)
     np.random.shuffle(track_ids)
@@ -203,6 +229,7 @@ def get_tracks():
     tracks_descriptors = response.json()['audio_features']
 
     return tracks_descriptors
+
 
 # input-structures
 #       tracks : [{                       emotions : {
@@ -230,23 +257,26 @@ def choose_track(emotions, tracks_descriptors):
     # negative feelings 
     if (emotions['anger'] > 0.6 or emotions['fear'] > 0.6 or emotions['sadness'] > 0.6):
         print('negative vibes')
-        tb_filtered = [t for t in tb_filtered if (t['valence'] < 0.4 and t['mode'] == 0)] # basic negativity filter
+        tb_filtered = [t for t in tb_filtered if (t['valence'] < 0.4 and t['mode'] == 0)]  # basic negativity filter
         print(tb_filtered)
         if (emotions['anger'] > 0.8):
             tb_filtered = [t for t in tb_filtered if (t['tempo'] > 90 and t['tempo'] < 150 and
-                t['energy'] > 0.8 and t['loudness'] > -15)]
-        else: # how could I distinguish fear from sadness?
+                                                      t['energy'] > 0.8 and t['loudness'] > -15)]
+        else:  # how could I distinguish fear from sadness?
             tb_filtered = [t for t in tb_filtered if (t['tempo'] > 70 and t['tempo'] < 100 and
-                t['energy'] > 0.2 and t['energy'] < 0.6 and t['loudness'] > -30 and t['loudness'] < -10)]
+                                                      t['energy'] > 0.2 and t['energy'] < 0.6 and t[
+                                                          'loudness'] > -30 and t['loudness'] < -10)]
     # positive ones
     elif (emotions['happiness'] > 0.6 or emotions['surprise'] > 0.6):
         print('positive vibes')
-        tb_filtered = [t for t in tb_filtered if (t['valence'] > 0.6)] # here I wouldn't consider the mode, basic positivity filter
+        tb_filtered = [t for t in tb_filtered if
+                       (t['valence'] > 0.6)]  # here I wouldn't consider the mode, basic positivity filter
         print(tb_filtered)
         if (emotions['happiness'] > 0.8):
-            tb_filtered = [t for t in tb_filtered if (t['valence'] > 0.8 and t['tempo'] > 90 and t ['tempo'] < 150 and
-                t['energy'] > 0.7 and t['loudness'] > -15 and t['danceability'] > 0.7)]
-        elif (emotions['surprise'] > 0.8): # how could I distinguish surprise from happiness?
+            tb_filtered = [t for t in tb_filtered if (t['valence'] > 0.8 and t['tempo'] > 90 and t['tempo'] < 150 and
+                                                      t['energy'] > 0.7 and t['loudness'] > -15 and t[
+                                                          'danceability'] > 0.7)]
+        elif (emotions['surprise'] > 0.8):  # how could I distinguish surprise from happiness?
             tb_filtered = []
         else:
             tb_filtered = []
@@ -258,7 +288,7 @@ def choose_track(emotions, tracks_descriptors):
 
     # select random track with  low: tempo
     #                          high: speechiness
-    # if (emotions["disgust"] > 0.6):
+    #  if (emotions["disgust"] > 0.6):
     #     print("disgust")
 
     # select random track with  low: instrumentalness
@@ -270,7 +300,6 @@ def choose_track(emotions, tracks_descriptors):
         print('________________________________________________________________')
         chosen = np.random.choice(tb_filtered)
         print(chosen)
-        play_track(chosen['uri'])
-        return chosen;
+        return chosen
     else:
         print('No track found, please adjust the implementation/thresholds =)')
