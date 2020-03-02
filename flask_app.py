@@ -14,6 +14,8 @@ except ImportError:
 # azure env vars
 api_key_azure = os.environ['AZURE_APIKEY']
 uri_azure = os.environ['AZURE_URI']
+def USING_AZURE():
+    return False # TODO: True for the exam
 
 # default playlist
 playlist_id_default = "2pHddKK7ZpHu6YUVNkZEWr"
@@ -74,30 +76,35 @@ def emotion():
         device = get_device()
         # check active device
         if device is not None:
-            # assert required values
-            assert uri_azure, api_key_azure
-            assert photo_byte
-            # headers parameters
-            headers = {
-                'Content-Type': 'application/octet-stream',
-                'Ocp-Apim-Subscription-Key': api_key_azure
-            }
-            # post parameters
-            params = {
-                'returnFaceId': 'true',
-                'returnFaceLandmarks': 'false',
-                'returnFaceAttributes': 'emotion',
-            }
-            # get response from azure
-            response = requests.post(uri_azure, params=params, headers=headers, data=photo_byte)
-            response_json = response.json()
-            # check azure response and understand emotion
-            assert response_json[0]
-            # save smile and emotions results
-            emotions = response_json[0]['faceAttributes']['emotion']
+            if USING_AZURE():
+                # assert required values
+                assert uri_azure, api_key_azure
+                assert photo_byte
+                # headers parameters
+                headers = {
+                    'Content-Type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': api_key_azure
+                }
+                # post parameters
+                params = {
+                    'returnFaceId': 'true',
+                    'returnFaceLandmarks': 'false',
+                    'returnFaceAttributes': 'emotion',
+                }
+                # get response from azure
+                response = requests.post(uri_azure, params=params, headers=headers, data=photo_byte)
+                response_json = response.json()
+                # check azure response and understand emotion
+                assert response_json[0]
+                # save smile and emotions results
+                emotions = response_json[0]['faceAttributes']['emotion']
+            else:
+                emotions = random_emotions()
+
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
-            # get chosen track
+
+            # get chosen track # TODO: randomize emotions vector
             chosen = choose_track(emotions, tracks_descriptors)
             if chosen is not None:
                 # play track
@@ -248,7 +255,7 @@ def get_tracks():
 #           ...
 #           }
 #       ]
-def choose_track(emotions, tracks_descriptors):
+def choose_track_old(emotions, tracks_descriptors):
     # anger | fear | sadness || happiness | surprise --map-->
     # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], loudness [dB], danceability [0,1] - filtering
     print(emotions)
@@ -281,21 +288,6 @@ def choose_track(emotions, tracks_descriptors):
         else:
             tb_filtered = []
 
-    # select random track with high: tempo, loudness
-    #                           low: speechiness
-    # if (emotions["anger"] > 0.6):
-    #     print("anger")
-
-    # select random track with  low: tempo
-    #                          high: speechiness
-    #  if (emotions["disgust"] > 0.6):
-    #     print("disgust")
-
-    # select random track with  low: instrumentalness
-    #                          high: loudness
-    # if (emotions["fear"] > 0.6):
-    #     print("fear")
-
     if (len(tb_filtered) > 0):
         print('________________________________________________________________')
         chosen = np.random.choice(tb_filtered)
@@ -303,3 +295,55 @@ def choose_track(emotions, tracks_descriptors):
         return chosen
     else:
         print('No track found, please adjust the implementation/thresholds =)')
+
+
+# TODO: try to enforce each emotion (as 1-of-K vector) to inspect the content of tb_filtered
+# (where tb_filtered is a set of songs which should fit the current emo)
+def choose_track(emotions, tracks_descriptors):
+    # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], loudness [dB], danceability [0,1] - filtering
+    emo = max(emotions)
+    print(emo)
+    tb_filtered = tracks_descriptors.copy()
+    
+    # emo dependent predicative constraint definition for filtering
+    if (emo == 'anger' or emo == 'disgust' or emo == 'contempt'):
+        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
+            t['tempo'] > 90 and t['tempo'] < 150 and t['energy'] > 0.8 and t['loudness'] > -15)
+    elif (emo == 'fear'):
+        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
+            t['tempo'] > 70 and t['tempo'] < 100 and 
+            t['energy'] > 0.3 and t['energy'] < 0.6 and 
+            t['loudness'] > -30 and t['loudness'] < -15)
+    elif (emo == 'sadness'):
+        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
+            t['tempo'] > 60 and t['tempo'] < 80 and 
+            t['energy'] > 0.1 and t['energy'] < 0.4 and 
+            t['loudness'] > -30 and t['loudness'] < -15)
+    elif (emo == 'happiness'):
+        criteria = lambda t : (t['valence'] > 0.7 and 
+            t['tempo'] > 90 and t['tempo'] < 150 and 
+            t['energy'] > 0.7 and t['loudness'] > -15 and 
+            t['danceability'] > 0.7)
+    elif (emo == 'surprise'):
+        criteria = lambda t : (t['valence'] > 0.8 and t['mode'] == 1 and 
+            t['tempo'] > 110 and t['tempo'] < 150 and 
+            t['energy'] > 0.8 and t['loudness'] > -15 and 
+            t['danceability'] > 0.8)
+
+    if (emo != 'neutral'):
+        tb_filtered = [t for t in tb_filtered if (criteria(t))]
+    if (len(tb_filtered) > 0):
+        print('________________________________________________________________')
+        print(tb_filtered)
+        chosen = np.random.choice(tb_filtered)
+        print('________________________________________________________________')
+        print(chosen)
+        return chosen
+    else:
+        print('No track found, please adjust the implementation/thresholds =)')
+
+def random_emotions():
+    ret = {'anger': 0, 'contempt': 0, 'disgust': 0, 'fear': 0, 'happiness': 0,
+        'neutral': 0, 'sadness': 0, 'surprise': 0}
+    ret[np.random.choice(list(ret.keys()))] = 1
+    return ret;
