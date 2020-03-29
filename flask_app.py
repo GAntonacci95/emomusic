@@ -101,17 +101,19 @@ def emotion():
             else:
                 emotions = random_emotions()
 
+            # selection of the main emotion
+            emo = max(emotions)
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
             # get chosen track # TODO: randomize emotions vector
-            chosen = choose_track(emotions, tracks_descriptors)
+            chosen = choose_track(emo, tracks_descriptors)
             if chosen is not None:
                 # play track
                 if play_track(chosen['uri'], device):
                     return json.dumps({
                         'success': True,
-                        'emotions': emotions,
+                        'emotion': emo,
                         'audio_features': chosen
                     }), 200, {'ContentType': 'application/json'}
                 else:
@@ -299,9 +301,8 @@ def choose_track_old(emotions, tracks_descriptors):
 
 # TODO: try to enforce each emotion (as 1-of-K vector) to inspect the content of tb_filtered
 # (where tb_filtered is a set of songs which should fit the current emo)
-def choose_track(emotions, tracks_descriptors):
+def choose_track(emo, tracks_descriptors):
     # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], loudness [dB], danceability [0,1] - filtering
-    emo = max(emotions)
     print(emo)
     tb_filtered = tracks_descriptors.copy()
     
@@ -330,7 +331,7 @@ def choose_track(emotions, tracks_descriptors):
             t['energy'] > 0.8 and t['loudness'] > -15 and 
             t['danceability'] > 0.8)
 
-    if (emo != 'neutral'):
+    if (emo != 'neutral'): # if the current emotion is neutral no filtering is needed
         tb_filtered = [t for t in tb_filtered if (criteria(t))]
     if (len(tb_filtered) > 0):
         print('________________________________________________________________')
