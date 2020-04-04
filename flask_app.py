@@ -102,15 +102,13 @@ def emotion():
                 emotions = random_emotions()
 
             # selection of the main emotion
-            #TODO: to fix
-            emo = "anger"
+            emo = pick_max_emo(emotions)
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
-            # get chosen track # TODO: randomize emotions vector
+            # get chosen track
             chosen = choose_track(emo, tracks_descriptors)
             if chosen is not None:
-
                 return json.dumps({
                     'success': True,
                     'emotion': emo,
@@ -218,7 +216,6 @@ def get_tracks():
         assert response.status_code == 200, response.content
         for track in response.json()['tracks']['items']:
             track_ids.append(track['track']['id'])
-        time.sleep(0.005)  # delay among each playlist request
     else:
         # for each playlist, retrieve the ids of all the songs contained in it
         params = {'fields': 'items(track(id))'}
@@ -264,48 +261,6 @@ def get_tracks():
 #           ...
 #           }
 #       ]
-def choose_track_old(emotions, tracks_descriptors):
-    # anger | fear | sadness || happiness | surprise --map-->
-    # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], loudness [dB], danceability [0,1] - filtering
-    print(emotions)
-    tb_filtered = tracks_descriptors.copy()
-
-    # negative feelings 
-    if (emotions['anger'] > 0.6 or emotions['fear'] > 0.6 or emotions['sadness'] > 0.6):
-        print('negative vibes')
-        tb_filtered = [t for t in tb_filtered if (t['valence'] < 0.4 and t['mode'] == 0)]  # basic negativity filter
-        print(tb_filtered)
-        if (emotions['anger'] > 0.8):
-            tb_filtered = [t for t in tb_filtered if (t['tempo'] > 90 and t['tempo'] < 150 and
-                                                      t['energy'] > 0.8 and t['loudness'] > -15)]
-        else:  # how could I distinguish fear from sadness?
-            tb_filtered = [t for t in tb_filtered if (t['tempo'] > 70 and t['tempo'] < 100 and
-                                                      t['energy'] > 0.2 and t['energy'] < 0.6 and t[
-                                                          'loudness'] > -30 and t['loudness'] < -10)]
-    # positive ones
-    elif (emotions['happiness'] > 0.6 or emotions['surprise'] > 0.6):
-        print('positive vibes')
-        tb_filtered = [t for t in tb_filtered if
-                       (t['valence'] > 0.6)]  # here I wouldn't consider the mode, basic positivity filter
-        print(tb_filtered)
-        if (emotions['happiness'] > 0.8):
-            tb_filtered = [t for t in tb_filtered if (t['valence'] > 0.8 and t['tempo'] > 90 and t['tempo'] < 150 and
-                                                      t['energy'] > 0.7 and t['loudness'] > -15 and t[
-                                                          'danceability'] > 0.7)]
-        elif (emotions['surprise'] > 0.8):  # how could I distinguish surprise from happiness?
-            tb_filtered = []
-        else:
-            tb_filtered = []
-
-    if (len(tb_filtered) > 0):
-        print('________________________________________________________________')
-        chosen = np.random.choice(tb_filtered)
-        print(chosen)
-        return chosen
-    else:
-        print('No track found, please adjust the implementation/thresholds =)')
-
-
 # TODO: try to enforce each emotion (as 1-of-K vector) to inspect the content of tb_filtered
 # (where tb_filtered is a set of songs which should fit the current emo)
 def choose_track(emo, tracks_descriptors):
@@ -355,3 +310,6 @@ def random_emotions():
         'neutral': 0, 'sadness': 0, 'surprise': 0}
     ret[np.random.choice(list(ret.keys()))] = 1
     return ret
+
+def pick_max_emo(emotions):
+    return list(emotions.keys())[np.argmax(list(emotions.values()))]
