@@ -50,7 +50,7 @@ function calcWave() {
 
   // For every x value, calculate a y value with sine function
   let x = theta;
-  for (let i = 0; i < yvalues.length; i++) {
+  for (let i = 0; i < yvalues.length; i++) {g
     switch(emotion) {
       case "happy":
         yvalues[i] = sin(x) * amplitude; // sine
