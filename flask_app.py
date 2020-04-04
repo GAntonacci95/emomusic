@@ -102,31 +102,38 @@ def emotion():
                 emotions = random_emotions()
 
             # selection of the main emotion
-            emo = max(emotions)
+            #TODO: to fix
+            emo = "anger"
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
             # get chosen track # TODO: randomize emotions vector
             chosen = choose_track(emo, tracks_descriptors)
             if chosen is not None:
-                # play track
-                if play_track(chosen['uri'], device):
-                    return json.dumps({
-                        'success': True,
-                        'emotion': emo,
-                        'audio_features': chosen
-                    }), 200, {'ContentType': 'application/json'}
-                else:
-                    return json.dumps({
-                        'success': False,
-                        'message': "Error during playback on your device"
-                    }), 404, {'ContentType': 'application/json'}
 
-            else:
                 return json.dumps({
-                    'success': False,
-                    'message': "Track not found for current emotion"
-                }), 404, {'ContentType': 'application/json'}
+                    'success': True,
+                    'emotion': emo,
+                    'audio_features': chosen
+                }), 200, {'ContentType': 'application/json'}
+            #     # play track
+            #     if play_track(chosen['uri'], device):
+            #         return json.dumps({
+            #             'success': True,
+            #             'emotion': emo,
+            #             'audio_features': chosen
+            #         }), 200, {'ContentType': 'application/json'}
+            #     else:
+            #         return json.dumps({
+            #             'success': False,
+            #             'message': "Error during playback on your device"
+            #         }), 404, {'ContentType': 'application/json'}
+            #
+            # else:
+            #     return json.dumps({
+            #         'success': False,
+            #         'message': "Track not found for current emotion"
+            #     }), 404, {'ContentType': 'application/json'}
 
         else:
             return json.dumps({
@@ -347,4 +354,4 @@ def random_emotions():
     ret = {'anger': 0, 'contempt': 0, 'disgust': 0, 'fear': 0, 'happiness': 0,
         'neutral': 0, 'sadness': 0, 'surprise': 0}
     ret[np.random.choice(list(ret.keys()))] = 1
-    return ret;
+    return ret

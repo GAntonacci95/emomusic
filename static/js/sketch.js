@@ -24,6 +24,7 @@ function setup() {
 }
 
 function draw() {
+  c2 = color(bkg_color);
   setGradient(c1, c2);
   //frameRate(30);
   strokeWeight(1);
