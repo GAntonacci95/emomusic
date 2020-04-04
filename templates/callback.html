@@ -18,11 +18,10 @@
     <script type="text/javascript" src="/static/js/lib/webcam.min.js"></script>
     <script type="text/javascript" src="/static/js/lib/p5.min.js"></script>
     <!-- SCRIPT IMPORT -->
-    <script type="text/javascript" src="/static/js/sketch.js"></script>
-</head>
-<body>
-<script>
-    let bkg_color = '#000046';
+    <script>
+    let bkg_color = "black";
+    let emotion = "neutral";
+
 
     $(".pause").hide(); //hide pause button until clicked
 
@@ -59,13 +58,30 @@
 
             // Callback handler that will be called on success
             request.done(function (response){
-                if(response.emotions !== 'undefined') {
-                    if (response.emotions.happiness > 0.2) {
-                        bkg_color = 'yellow';
-                    }
-                    if (response.emotions.anger > 0.2) {
-                        bkg_color = 'red';
-                    }
+                if(response.emotion !== 'undefined') {
+                    emotion = response.emotion;
+                   switch(emotion) {
+                       case "happiness":
+                       case "surprise":
+                           bkg_color = "yellow";
+                           break;
+
+
+                       case "anger":
+                       case "contempt":
+                       case "disgust":
+                       case "fear":
+                       case "sadness":
+                           bkg_color = "blue";
+                           break;
+
+                       case "neutral":
+                            bkg_color = "black";
+                           break;
+                       default:
+
+                           break;
+                   }
                 }
             });
 
@@ -91,6 +107,10 @@
         Webcam.attach( '#camera' );
     });
 </script>
+
+    <script type="text/javascript" src="/static/js/sketch.js"></script>
+</head>
+<body>
 <div id="main-layer">
     <div class="image color"></div>
 </div>
