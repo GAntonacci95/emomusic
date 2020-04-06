@@ -1,107 +1,84 @@
-var c1, c2;
-
-let xspacing = 1; // Distance between horizontal location
-let w; // width
-let theta = 0.0; // Start angle at 0
+let c1, c2;
+let pad;
+let frame = 30; // framerate
+let t = 0, dt = 1 / frame;
+let fmin = .2, fmax = .5, df = .001, f = .5; // Hertz
 let amplitude = 100.0; // Height of wave
-let period = 1000.0; // How many pixels before the wave repeats
-let dx; // Value for incrementing x
-let yvalues; // Using an array to store height values for the wave
-
-
-
+let yvalues, ysize = frame; // Using an array to store height values for the wave
+let strokeWidth = 5;
+let background;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  frameRate(frame);
+  pad = Math.ceil(width / ysize) + 5; // pad between each point on screen
   // Define colors
   c1 = color("white");
   c2 = color(bkg_color); //Color to change with emotion
-
-  w = width + 16;
-  dx = (TWO_PI / period) * xspacing;
-  yvalues = new Array(floor(w));
-
+  background = select("#emo-context");
+  background.style("background", c2);
+  yvalues = new Array(ysize);
 }
 
 function draw() {
   c2 = color(bkg_color);
-  setGradient(c1, c2);
-  //frameRate(30);
-  strokeWeight(1);
-  ellipse(mouseX, mouseY, 30, 30);
+  background.style("background", c2);
+  clear();
   calcWave();
   renderWave();
 }
 
-
-
 function calcWave() {
-  // Increment theta (try different values for
-  // 'angular velocity' here)
-  theta += 0.02;
-
   // For every x value, calculate a y value with sine function
-  let x = theta;
-  for (let i = 0; i < yvalues.length; i++) {
-    switch(emotion) {
-      case "happiness":
-      case "surprise":
-        yvalues[i] = sin(x) * amplitude; // sine
-        //bkg_color = "yellow";
-        break;
-
-
-      case "anger":
-      case "contempt":
-      case "disgust":
-      case "fear":
-      case "sadness":
-        yvalues[i] = (x * amplitude) % 150; // saw
-        break;
-
-      case "neutral":
-        yvalues[i] = x; // line
-        break;
-      default:
-        yvalues[i] = (x % 5) < 5/2 ? x*amplitude : 0; // square
-        break;
-    }
-    x += dx;
-    /*if(x < 5) {
-      emotion = "happy";
-    } else {
-      emotion = "angry";
-    }*/
+  let x = TWO_PI * f * t;
+  let y = 0;
+  switch(emotion) {
+    case "happiness":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "surprise":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "anger":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "contempt":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "disgust":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "fear":
+      y = sin(x) * amplitude; // sine
+      break;
+    case "sadness":
+      y = (x * amplitude) % 150; // saw
+      break;
+    case "neutral":
+      y = 1  ; // line
+      break;
+    default:
+      y = (x % 5) < 5/2 ? x*amplitude : 0; // square
+      break;
   }
+  t += dt;
+  yvalues.splice(0, 1); // remove first element
+  yvalues.splice(yvalues.length - 1, 0, y); // add the last
 }
 
 function renderWave() {
-  strokeWeight(5);
+  blendMode(ADD);
+  strokeWeight(strokeWidth);
   stroke(0,99);
-  noFill();
+  fill(220);
   beginShape();
-  vertex(0, height);
-  vertex(0,height/2)
+  vertex(0 - strokeWidth, height);
+  vertex(0 - strokeWidth,height/2);
   // A simple way to draw the wave with an ellipse at each location
   for (let x = 0; x <= yvalues.length; x++) {
-    vertex(x, (height/2) + yvalues[x]);
+    vertex(x * pad, (height/2) + yvalues[x]);
   }
-  vertex(width, height/2);
-  vertex(width, height);
+  vertex(width + strokeWidth, height/2);
+  vertex(width + strokeWidth, height);
   endShape();
 }
-
-function setGradient(c1, c2) {
-  // noprotect
-  noFill();
-  for (var y = 0; y < height; y++) {
-    var inter = map(y, 0, height, 0, 1);
-    var c = lerpColor(c1, c2, inter);
-    stroke(c);
-    line(0, y, width, y);
-  }
-}
-
-//{ N 'anger': 0, 'contempt': 0, 'disgust': 0, 'fear': 0, 'sadness', ': 0,
-//         'neutral'
-//         'happiness', 'surprise'

@@ -20,8 +20,7 @@
     <!-- SCRIPT IMPORT -->
     <script>
     let emotion = "neutral";
-    let bkg_color = "black";
-
+    let bkg_color = "white";
 
     $(".pause").hide(); //hide pause button until clicked
 
@@ -36,7 +35,6 @@
         $('.play').show();
         $('.pause').hide();
     });
-
 
     function getToken() {
         return window.location.href.substring(44, 230);
@@ -65,7 +63,7 @@
                     } else if (emotion === 'happiness' || emotion === 'surprire') {
                         bkg_color = 'yellow'
                     } else {
-                        bkg_color = 'blue'
+                        bkg_color = 'green'
                     }
                     // TODO: efficient wave-shape definition?
                 }
@@ -73,6 +71,8 @@
 
             // Callback handler that will be called on failure
             request.fail(function (response){
+                emotion = 'anger';
+                bkg_color = 'red';
                 // Log the error to the console
                 console.error("The following error occurred: "+
                     response.responseJSON.message
@@ -98,7 +98,7 @@
 </head>
 <body>
 <div id="main-layer">
-    <div class="image color"></div>
+    <div id="emo-context" class="image color"></div>
 </div>
 <div id="login">
     <div id="title">
@@ -109,14 +109,14 @@
     <button onclick="uploadImage()">Send Image</button>
 </div>
 
-<!--<div id="player">-->
-<!--    <div class="controls">-->
-<!--        <div class="previous"><span class="fas fa-backward"></span></div>-->
-<!--        <div class="play"><span class="fas fa-play"></span></div>-->
-<!--        <div class="pause"><span class="fas fa-pause"></span></div>-->
-<!--        <div class="next"><span class="fas fa-forward"></span></div>-->
-<!--    </div>-->
-<!--</div>-->
+<div id="player">
+    <div class="controls">
+        <div class="previous"><span class="fas fa-backward"></span></div>
+        <div class="play"><span class="fas fa-play"></span></div>
+        <div class="pause"><span class="fas fa-pause"></span></div>
+        <div class="next"><span class="fas fa-forward"></span></div>
+    </div>
+</div>
 <footer>
     Copyright
 </footer>
