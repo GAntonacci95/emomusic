@@ -2,7 +2,7 @@ let c1, c2;
 let pad;
 let frame = 30; // framerate
 let t = 0, dt = 1 / frame;
-let fmin = .2, fmax = .5, df = .001, f = .5; // Hertz
+let fmin = .2, fmax = .5, df = .001, f = 2; // Hertz
 let amplitude = 100.0; // Height of wave
 let yvalues, ysize = frame; // Using an array to store height values for the wave
 let strokeWidth = 5;
@@ -16,13 +16,13 @@ function setup() {
   c1 = color("white");
   c2 = color(bkg_color); //Color to change with emotion
   background = select("#emo-context");
-  background.style("background", c2);
+  background.style("background-image", c2);
   yvalues = new Array(ysize);
 }
 
 function draw() {
   c2 = color(bkg_color);
-  background.style("background", c2);
+  background.style("background-image", "linear-gradient(transparent, white)");
   clear();
   calcWave();
   renderWave();
@@ -33,24 +33,27 @@ function calcWave() {
   let x = TWO_PI * f * t;
   let y = 0;
   switch(emotion) {
+    // Positive
     case "happiness":
       y = sin(x) * amplitude; // sine
       break;
     case "surprise":
       y = sin(x) * amplitude; // sine
       break;
+    // Negative
     case "anger":
-      y = sin(x) * amplitude; // sine
-      break;
-    case "contempt":
-      y = sin(x) * amplitude; // sine
+      y = (x * amplitude) % 150; // saw
       break;
     case "disgust":
       y = sin(x) * amplitude; // sine
       break;
     case "fear":
+      y = (x % 5) < 5/2 ? x*amplitude : 0; // square
+      break;
+    case "contempt":
       y = sin(x) * amplitude; // sine
       break;
+    // Neutral
     case "sadness":
       y = (x * amplitude) % 150; // saw
       break;
@@ -58,7 +61,7 @@ function calcWave() {
       y = 1  ; // line
       break;
     default:
-      y = (x % 5) < 5/2 ? x*amplitude : 0; // square
+      y = (x * amplitude) % 150; // saw
       break;
   }
   t += dt;
@@ -70,7 +73,7 @@ function renderWave() {
   blendMode(ADD);
   strokeWeight(strokeWidth);
   stroke(0,99);
-  fill(220);
+  noFill();
   beginShape();
   vertex(0 - strokeWidth, height);
   vertex(0 - strokeWidth,height/2);

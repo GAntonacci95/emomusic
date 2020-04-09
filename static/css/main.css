@@ -4,6 +4,9 @@ html {
     color: #ffffff;
     overflow: hidden;
 }
+#emo-context {
+    background-image: linear-gradient(transparent, white);
+}
 #main-layer .image {
     position: absolute;
     z-index: 0;

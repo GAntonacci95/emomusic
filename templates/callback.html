@@ -20,6 +20,7 @@
     <!-- SCRIPT IMPORT -->
     <script>
     let emotion = "neutral";
+    let audio = 'undefined';
     let bkg_color = "white";
 
     $(".pause").hide(); //hide pause button until clicked
@@ -58,6 +59,7 @@
             request.done(function (response){
                 if(response.emotion !== 'undefined') {
                     emotion = response.emotion;
+                    audio = response.audio_features;
                     if (emotion === 'neutral') {
                         bkg_color = 'black'
                     } else if (emotion === 'happiness' || emotion === 'surprire') {
