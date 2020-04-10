@@ -102,7 +102,8 @@ def emotion():
                 emotions = random_emotions()
 
             # selection of the main emotion
-            emo = pick_max_emo(emotions)
+            emo = 'happiness' # pick_max_emo(emotions)
+            # anger, fear, sadness, happiness
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
@@ -261,40 +262,37 @@ def get_tracks():
 #           ...
 #           }
 #       ]
-# TODO: try to enforce each emotion (as 1-of-K vector) to inspect the content of tb_filtered
+# TODO: setup accordante della grafica - Adri
 # (where tb_filtered is a set of songs which should fit the current emo)
 def choose_track(emo, tracks_descriptors):
-    # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], loudness [dB], danceability [0,1] - filtering
+    # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], danceability [0,1] - filtering
     print(emo)
     tb_filtered = tracks_descriptors.copy()
     
     # emo dependent predicative constraint definition for filtering
-    if (emo == 'anger' or emo == 'disgust' or emo == 'contempt'):
-        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
-            t['tempo'] > 90 and t['tempo'] < 150 and t['energy'] > 0.8 and t['loudness'] > -15)
-    elif (emo == 'fear'):
-        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
-            t['tempo'] > 70 and t['tempo'] < 100 and 
-            t['energy'] > 0.3 and t['energy'] < 0.6 and 
-            t['loudness'] > -30 and t['loudness'] < -15)
-    elif (emo == 'sadness'):
-        criteria = lambda t : (t['valence'] < 0.4 and t['mode'] == 0 and 
-            t['tempo'] > 60 and t['tempo'] < 80 and 
-            t['energy'] > 0.1 and t['energy'] < 0.4 and 
-            t['loudness'] > -30 and t['loudness'] < -15)
-    elif (emo == 'happiness'):
-        criteria = lambda t : (t['valence'] > 0.7 and 
-            t['tempo'] > 90 and t['tempo'] < 150 and 
-            t['energy'] > 0.7 and t['loudness'] > -15 and 
-            t['danceability'] > 0.7)
-    elif (emo == 'surprise'):
-        criteria = lambda t : (t['valence'] > 0.8 and t['mode'] == 1 and 
-            t['tempo'] > 110 and t['tempo'] < 150 and 
-            t['energy'] > 0.8 and t['loudness'] > -15 and 
-            t['danceability'] > 0.8)
-
-    if (emo != 'neutral'): # if the current emotion is neutral no filtering is needed
+    if (emo != 'neutral'):
+        if (emo == 'anger' or emo == 'disgust' or emo == 'contempt'): # fast saw, red
+            criteria = lambda t : (t['valence'] < 0.4 and
+                t['mode'] == 0 and 
+                t['tempo'] > 110 and t['tempo'] < 170 and
+                t['energy'] > 0.7)
+        elif (emo == 'fear'): # slow saw, blue
+            criteria = lambda t : (t['valence'] < 0.4 and
+                t['mode'] == 0 and 
+                t['tempo'] > 80 and t['tempo'] < 110 and
+                t['energy'] > 0.7)
+        elif (emo == 'sadness'): # slow sine, blue
+            criteria = lambda t : (t['valence'] < 0.4 and
+                t['mode'] == 0 and 
+                t['tempo'] > 80 and t['tempo'] < 110 and
+                t['energy'] < 0.7)
+        elif (emo == 'happiness' or emo == 'surprise'): # fast sine, yellow
+            criteria = lambda t : (t['valence'] > 0.6 and t['mode'] == 1 and 
+                t['tempo'] > 100 and t['tempo'] < 150 and 
+                t['energy'] > 0.6 and 
+                t['danceability'] > 0.6)
         tb_filtered = [t for t in tb_filtered if (criteria(t))]
+    
     if (len(tb_filtered) > 0):
         print('________________________________________________________________')
         print(tb_filtered)
@@ -303,7 +301,7 @@ def choose_track(emo, tracks_descriptors):
         print(chosen)
         return chosen
     else:
-        print('No track found, please adjust the implementation/thresholds =)')
+        print('No track found, please adjust the implementation/thresholds or enlarge your playlist =)')
 
 def random_emotions():
     ret = {'anger': 0, 'contempt': 0, 'disgust': 0, 'fear': 0, 'happiness': 0,
