@@ -192,6 +192,60 @@ def play_track(uri_track, device):
     assert response.status_code == 204
     return True
 
+# FOR SOLE PREMIUM ACCOUNTS!
+# https://developer.spotify.com/documentation/web-api/reference/player/pause-a-users-playback/
+# PUT METHOD : https://api.spotify.com/v1/me/player/pause
+# SCOPE : user-modify-playback-state
+@app.route("/pause", methods=["POST"])
+def pause():
+    if (request.method == "POST"):
+        # check request value
+        assert request.values.get('token')
+        # store token
+        session['token'] = request.values.get('token')
+        # get device
+        device = get_device()
+        # check active device
+        if device is not None:
+            headers = {"Authorization": "Bearer %s" % session['token']}
+            # create request
+            response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/pause?device_id=" + str(device['id']))
+            # check required values
+            assert response.status_code == 204
+            return True
+        else:
+            return json.dumps({
+                'success': False,
+                'message': 'No active device available pause music'
+            }), 404, {'ContentType': 'application/json'}
+
+# FOR SOLE PREMIUM ACCOUNTS!
+# https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/
+# PUT METHOD : https://api.spotify.com/v1/me/player/play
+# SCOPE : user-modify-playback-state
+@app.route("/play", methods=["POST"])
+def play():
+    if (request.method == "POST"):
+        # check request value
+        assert request.values.get('token')
+        # store token
+        session['token'] = request.values.get('token')
+        # get device
+        device = get_device()
+        # check active device
+        if device is not None:
+            headers = {"Authorization": "Bearer %s" % session['token']}
+            # create request
+            response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/play?device_id=" + str(device['id']))
+            # check required values
+            assert response.status_code == 204
+            return True
+        else:
+            return json.dumps({
+                'success': False,
+                'message': 'No active device available playing music'
+            }), 404, {'ContentType': 'application/json'}
+
 
 def get_tracks():
     headers = {"Authorization": "Bearer %s" % session['token']}

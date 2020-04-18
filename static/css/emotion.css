@@ -1,12 +1,12 @@
 #camera {
-  /*display: none;*/
+  display: none;
 }
 #player {
-    font-family: "FontAwesome";
+  font-family: "FontAwesome";
   background: #ffffff;
   opacity: 0.5;
   position: absolute;
-  top: 95%;
+  bottom: 65px;
   left: 0;
   right: 0;
   margin: auto;
@@ -17,26 +17,60 @@
   box-shadow: 5px 5px 15px;
   z-index: 2;
 }
-
 .controls {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  font-size: .8em;
+  font-size: 1.8em;
   justify-content: center;
   color: #301CC9;
+  line-height: 0.76;
 }
-.play, .pause {
-  margin: 15px 25px;
+.play, .load, .pause, .next {
+  padding: 15px 25px;
   color: #301CC9;
+  cursor: pointer;
 }
-.play, .pause, .next, .previous, .option, .add, .volume, .shuffle {
+.play, .load, .pause, .next {
   transition: all .5s ease;
 
 }
-
-.play:hover {
+.play:hover, .pause:hover, .next:hover {
   color: #364F3C;
 }
 
-
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  -webkit-animation: rotating 2s linear infinite;
+  -moz-animation: rotating 2s linear infinite;
+  -ms-animation: rotating 2s linear infinite;
+  -o-animation: rotating 2s linear infinite;
+  animation: rotating 2s linear infinite;
+}
 

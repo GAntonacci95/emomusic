@@ -19,83 +19,160 @@
     <script type="text/javascript" src="/static/js/lib/p5.min.js"></script>
     <!-- SCRIPT IMPORT -->
     <script>
-    let emotion = "neutral";
-    let audio = 'undefined';
-    let bkg_color = "white";
+        let emotion = "neutral";
+        let audio = 'undefined';
+        let bkg_color = "white";
 
-    $(".pause").hide(); //hide pause button until clicked
+        function getToken() {
+            return window.location.href.substring(44, 230);
+        }
 
-    //play button
-    $('.play').click(function(){
-        $('.play').hide();
-        $('.pause').show();
-    });
+        function uploadImage() {
+            // take snapshot and get image data
+            Webcam.snap( function(data_uri) {
+                // send image
+                request = $.ajax({
+                    url: "/emotion",
+                    type: "post",
+                    data: {
+                        "photo" : data_uri,
+                        "token" : getToken()
+                    },
+                    dataType: "json"
+                });
 
-    //pause button
-    $('.pause').click(function(){
-        $('.play').show();
-        $('.pause').hide();
-    });
-
-    function getToken() {
-        return window.location.href.substring(44, 230);
-    }
-
-    function uploadImage() {
-        // take snapshot and get image data
-        Webcam.snap( function(data_uri) {
-            // send image
-            request = $.ajax({
-                url: "/emotion",
-                type: "post",
-                data: {
-                    "photo" : data_uri,
-                    "token" : getToken()
-                },
-                dataType: "json"
-            });
-
-            // Callback handler that will be called on success
-            request.done(function (response){
-                if(response.emotion !== 'undefined') {
-                    emotion = response.emotion;
-                    audio = response.audio_features;
-                    if (emotion === 'neutral') {
-                        bkg_color = 'black'
-                    } else if (emotion === 'happiness' || emotion === 'surprire') {
-                        bkg_color = 'yellow'
-                    } else {
-                        bkg_color = 'green'
+                // Callback handler that will be called on success
+                request.done(function (response){
+                    if(response.emotion !== 'undefined') {
+                        emotion = response.emotion;
+                        audio = response.audio_features;
+                        if (emotion === 'neutral') {
+                            bkg_color = 'black'
+                        } else if (emotion === 'happiness' || emotion === 'surprire') {
+                            bkg_color = 'yellow'
+                        } else {
+                            bkg_color = 'green'
+                        }
+                        // TODO: efficient wave-shape definition?
+                        $('.play').hide();
+                        $(".load").hide();
+                        $(".pause").show();
                     }
-                    // TODO: efficient wave-shape definition?
-                }
+                });
+
+                // Callback handler that will be called on failure
+                request.fail(function (response){
+                    emotion = 'anger';
+                    bkg_color = 'red';
+                    // Log the error to the console
+                    console.error("The following error occurred: "+
+                        response.responseJSON.message
+                    );
+                });
+            });
+        }
+
+        $( document ).ready(function() {
+            //hide pause button until clicked
+            $(".pause").hide();
+            $('.play').hide();
+            $(".load").show();
+            // webcam settings
+            Webcam.set({
+                width: 320,
+                height: 240,
+                image_format: 'jpeg',
+                jpeg_quality: 90
+            });
+            Webcam.attach( '#camera' );
+            // 2 seconds after document ready snap webcam
+            setTimeout(() => {
+                uploadImage();
+            }, 2000);
+
+            //play button
+            $('.next').click(function(){
+                $('.next').hide();
+                $(".load").show();
+                // catch new emotion
+                uploadImage();
+                // Callback handler that will be called on success
+                request.done(function (response){
+                    $('.next').show();
+                    $(".load").hide();
+                    // activate animation
+                });
+
+                // Callback handler that will be called on failure
+                request.fail(function (response){
+                    $('.next').show();
+                    $(".load").hide();
+                    // Log the error to the console
+                    console.error("Ops! We cannot skip the song");
+                });
             });
 
-            // Callback handler that will be called on failure
-            request.fail(function (response){
-                emotion = 'anger';
-                bkg_color = 'red';
-                // Log the error to the console
-                console.error("The following error occurred: "+
-                    response.responseJSON.message
-                );
+            //play button
+            $('.play').click(function(){
+                $('.play').hide();
+                $(".load").show();
+
+                // pause song
+                request = $.ajax({
+                    url: "/play",
+                    type: "post",
+                    data: {
+                        "token" : getToken()
+                    },
+                    dataType: "json"
+                });
+                // Callback handler that will be called on success
+                request.done(function (response){
+                    $('.pause').show();
+                    $(".load").hide();
+                    // activate animation
+                });
+
+                // Callback handler that will be called on failure
+                request.fail(function (response){
+                    $('.play').show();
+                    $(".load").hide();
+                    // Log the error to the console
+                    console.error("Ops! We cannot resume the playback");
+                });
+            });
+
+            //pause button
+            $('.pause').click(function(){
+                $('.pause').hide();
+                $(".load").show();
+
+                // pause song
+                request = $.ajax({
+                    url: "/pause",
+                    type: "post",
+                    data: {
+                        "token" : getToken()
+                    },
+                    dataType: "json"
+                });
+                // Callback handler that will be called on success
+                request.done(function (response){
+                    $('.play').show();
+                    $(".load").hide();
+                    // slow down the animation
+                });
+
+                // Callback handler that will be called on failure
+                request.fail(function (response){
+                    $('.pause').show();
+                    $(".load").hide();
+                    // Log the error to the console
+                    console.error("Ops! We cannot pause the playback");
+                });
             });
         });
-    }
-
-    // shorthand for $( document ).ready()
-    $(function() {
-        // webcam settings
-        Webcam.set({
-            width: 320,
-            height: 240,
-            image_format: 'jpeg',
-            jpeg_quality: 90
-        });
-        Webcam.attach( '#camera' );
-    });
-</script>
-
+    </script>
     <script type="text/javascript" src="/static/js/sketch.js"></script>
 </head>
 <body>
@@ -108,15 +185,14 @@
         <h3>Emotion recognition player manager</h3>
     </div>
     <div id="camera"></div>
-    <button onclick="uploadImage()">Send Image</button>
 </div>
 
 <div id="player">
     <div class="controls">
-        <div class="previous"><span class="fas fa-backward"></span></div>
-        <div class="play"><span class="fas fa-play"></span></div>
-        <div class="pause"><span class="fas fa-pause"></span></div>
-        <div class="next"><span class="fas fa-forward"></span></div>
+        <div class="play"><span class="fas fa-play" aria-hidden="true"></span></div>
+        <div class="pause"><span class="fas fa-pause" aria-hidden="true"></span></div>
+        <div class="load rotating"><span class="fa fa-repeat" aria-hidden="true"></span></div>
+        <div class="next" onclick="uploadImage()"><span class="fas fa-forward"></span></div>
     </div>
 </div>
 <footer>
