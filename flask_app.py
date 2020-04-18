@@ -110,29 +110,25 @@ def emotion():
             # get chosen track
             chosen = choose_track(emo, tracks_descriptors)
             if chosen is not None:
+
+                # play track
+                if play_track(chosen['uri'], device):
+                    return json.dumps({
+                        'success': True,
+                        'emotion': emo,
+                        'audio_features': chosen
+                    }), 200, {'ContentType': 'application/json'}
+                else:
+                    return json.dumps({
+                        'success': False,
+                        'message': "Error during playback on your device"
+                    }), 404, {'ContentType': 'application/json'}
+
+            else:
                 return json.dumps({
-                    'success': True,
-                    'emotion': emo,
-                    'audio_features': chosen
-                }), 200, {'ContentType': 'application/json'}
-            #     # play track
-            #     if play_track(chosen['uri'], device):
-            #         return json.dumps({
-            #             'success': True,
-            #             'emotion': emo,
-            #             'audio_features': chosen
-            #         }), 200, {'ContentType': 'application/json'}
-            #     else:
-            #         return json.dumps({
-            #             'success': False,
-            #             'message': "Error during playback on your device"
-            #         }), 404, {'ContentType': 'application/json'}
-            #
-            # else:
-            #     return json.dumps({
-            #         'success': False,
-            #         'message': "Track not found for current emotion"
-            #     }), 404, {'ContentType': 'application/json'}
+                    'success': False,
+                    'message': "Track not found for current emotion"
+                }), 404, {'ContentType': 'application/json'}
 
         else:
             return json.dumps({
@@ -212,7 +208,9 @@ def pause():
             response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/pause?device_id=" + str(device['id']))
             # check required values
             assert response.status_code == 204
-            return True
+            return json.dumps({
+                'success': True,
+            }), 200, {'ContentType': 'application/json'}
         else:
             return json.dumps({
                 'success': False,
@@ -239,7 +237,9 @@ def play():
             response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/play?device_id=" + str(device['id']))
             # check required values
             assert response.status_code == 204
-            return True
+            return json.dumps({
+                'success': True,
+            }), 200, {'ContentType': 'application/json'}
         else:
             return json.dumps({
                 'success': False,
