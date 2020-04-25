@@ -15,7 +15,7 @@ except ImportError:
 api_key_azure = os.environ['AZURE_APIKEY']
 uri_azure = os.environ['AZURE_URI']
 def USING_AZURE():
-    return False # TODO: True for the exam
+    return True # TODO: True for the exam
 
 # default playlist
 playlist_id_default = "2pHddKK7ZpHu6YUVNkZEWr"
@@ -102,8 +102,7 @@ def emotion():
                 emotions = random_emotions()
 
             # selection of the main emotion
-            emo = 'happiness' # pick_max_emo(emotions)
-            # anger, fear, sadness, happiness
+            emo = pick_max_emo(emotions)
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 

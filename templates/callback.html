@@ -21,7 +21,7 @@
     <script>
         let emotion = "neutral";
         let audio = 'undefined';
-        let bkg_color = "white";
+        let bkg_color = 'transparent';
 
         function getToken() {
             return window.location.href.substring(44, 230);
@@ -47,13 +47,18 @@
                         emotion = response.emotion;
                         audio = response.audio_features;
                         if (emotion === 'neutral') {
-                            bkg_color = 'black'
-                        } else if (emotion === 'happiness' || emotion === 'surprire') {
-                            bkg_color = 'yellow'
-                        } else {
-                            bkg_color = 'green'
-                        }
+                            bkg_color = 'black';
+                        } else if (emotion === 'happiness' || emotion === 'surprise') {
+                            bkg_color = 'yellow';
+                        } else if (emotion === 'fear' || emotion === 'anger'){
+                            bkg_color = 'red';
+                        } else if (emotion === 'sadness' || emotion === 'contempt'){
+                            bkg_color = 'blue';
+                        } else if (emotion === 'disgust') {
+                            bkg_color = 'green';
+                        } else {bkg_color = 'transparent';}
                         // TODO: efficient wave-shape definition?
+                        f = map(audio.tempo, 60, 170, 0.2, 2);
                         $('.play').hide();
                         $(".load").hide();
                         $(".pause").show();
@@ -101,6 +106,7 @@
                     $('.next').show();
                     $(".load").hide();
                     // activate animation
+                    loop();
                 });
 
                 // Callback handler that will be called on failure
@@ -131,6 +137,7 @@
                     $('.pause').show();
                     $(".load").hide();
                     // activate animation
+                    loop();
                 });
 
                 // Callback handler that will be called on failure
@@ -161,6 +168,8 @@
                     $('.play').show();
                     $(".load").hide();
                     // slow down the animation
+                    noLoop();
+
                 });
 
                 // Callback handler that will be called on failure

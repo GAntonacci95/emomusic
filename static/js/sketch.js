@@ -13,16 +13,16 @@ function setup() {
   frameRate(frame);
   pad = Math.ceil(width / ysize) + 5; // pad between each point on screen
   // Define colors
-  c1 = color("white");
-  c2 = color(bkg_color); //Color to change with emotion
+  //c1 = color("white");
+  //c2 = color(bkg_color); //Color to change with emotion
   background = select("#emo-context");
   background.style("background-image", c2);
   yvalues = new Array(ysize);
 }
 
 function draw() {
-  c2 = color(bkg_color);
-  background.style("background-image", "linear-gradient(transparent, white)");
+  //c2 = color(bkg_color);
+  background.style("background-image", "linear-gradient("+ bkg_color +", white)");
   clear();
   calcWave();
   renderWave();
@@ -42,26 +42,26 @@ function calcWave() {
       break;
     // Negative
     case "anger":
-      y = (x * amplitude) % 150; // saw
+      y = (x * amplitude) % 250; // saw
       break;
     case "disgust":
       y = sin(x) * amplitude; // sine
       break;
     case "fear":
-      y = (x % 5) < 5/2 ? x*amplitude : 0; // square
+      y = ((x % 2) < 2/2 ? amplitude : amplitude/2)*3 ; // square
       break;
     case "contempt":
       y = sin(x) * amplitude; // sine
       break;
     // Neutral
     case "sadness":
-      y = (x * amplitude) % 150; // saw
+      y = (x * amplitude) % 250; // saw
       break;
     case "neutral":
       y = 1  ; // line
       break;
     default:
-      y = (x * amplitude) % 150; // saw
+      y = (x * amplitude) % 250; // saw
       break;
   }
   t += dt;
