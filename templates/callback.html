@@ -47,16 +47,18 @@
                         emotion = response.emotion;
                         audio = response.audio_features;
                         if (emotion === 'neutral') {
-                            bkg_color = 'black';
+                            bkg_color = '#A45AE8';
                         } else if (emotion === 'happiness' || emotion === 'surprise') {
-                            bkg_color = 'yellow';
+                            bkg_color = '#E8C75A';
                         } else if (emotion === 'fear' || emotion === 'anger'){
-                            bkg_color = 'red';
+                            bkg_color = '#FF846F';
                         } else if (emotion === 'sadness' || emotion === 'contempt'){
-                            bkg_color = 'blue';
+                            bkg_color = '#6BDBFF';
                         } else if (emotion === 'disgust') {
-                            bkg_color = 'green';
-                        } else {bkg_color = 'transparent';}
+                            bkg_color = '#79FF63';
+                        } else {
+                            bkg_color = 'transparent';
+                        }
                         // TODO: efficient wave-shape definition?
                         f = map(audio.tempo, 60, 170, 0.2, 2);
                         $('.play').hide();
@@ -68,7 +70,7 @@
                 // Callback handler that will be called on failure
                 request.fail(function (response){
                     emotion = 'anger';
-                    bkg_color = 'red';
+                    bkg_color = '#FF846F';
                     // Log the error to the console
                     console.error("The following error occurred: "+
                         response.responseJSON.message
