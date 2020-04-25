@@ -62,7 +62,16 @@ def callback():
 def emotion():
     if (request.method == "POST"):
         # check request value
-        assert request.values.get('token'), request.values.get('photo')
+        if not request.values.get('token'):
+            return json.dumps({
+                'success': False,
+                'message': 'Token Expired! Refresh your Token'
+            }), 500, {'ContentType': 'application/json'}
+        if not request.values.get('photo'):
+            return json.dumps({
+                'success': False,
+                'message': 'Error on getting your image. We need to see you'
+            }), 500, {'ContentType': 'application/json'}
         # store token
         session['token'] = request.values.get('token')
         # get picture
@@ -95,7 +104,12 @@ def emotion():
                 response = requests.post(uri_azure, params=params, headers=headers, data=photo_byte)
                 response_json = response.json()
                 # check azure response and understand emotion
-                assert response_json[0]
+                if not response_json[0]:
+                    return json.dumps({
+                        'success': False,
+                        'message': 'Error on recognizing emotion'
+                    }), 500, {'ContentType': 'application/json'}
+
                 # save smile and emotions results
                 emotions = response_json[0]['faceAttributes']['emotion']
             else:
@@ -106,35 +120,39 @@ def emotion():
             # get tracks descriptors of user
             tracks_descriptors = get_tracks()
 
-            # get chosen track
-            chosen = choose_track(emo, tracks_descriptors)
-            if chosen is not None:
+            if tracks_descriptors is not None:
 
-                # play track
-                if play_track(chosen['uri'], device):
-                    return json.dumps({
-                        'success': True,
-                        'emotion': emo,
-                        'audio_features': chosen
-                    }), 200, {'ContentType': 'application/json'}
+                # get chosen track
+                chosen = choose_track(emo, tracks_descriptors)
+                if chosen is not None:
+
+                    # play track
+                    if play_track(chosen['uri'], device):
+                        return json.dumps({
+                            'success': True,
+                            'emotion': emo,
+                            'audio_features': chosen
+                        }), 200, {'ContentType': 'application/json'}
+                    else:
+                        return json.dumps({
+                            'success': False,
+                            'message': "Error during playback. Probably you need a Spotify Premium Account"
+                        }), 500, {'ContentType': 'application/json'}
                 else:
                     return json.dumps({
                         'success': False,
-                        'message': "Error during playback on your device"
-                    }), 404, {'ContentType': 'application/json'}
-
+                        'message': "Track not found for current emotion"
+                    }), 500, {'ContentType': 'application/json'}
             else:
                 return json.dumps({
                     'success': False,
-                    'message': "Track not found for current emotion"
-                }), 404, {'ContentType': 'application/json'}
-
+                    'message': "Error on getting tracks"
+                }), 500, {'ContentType': 'application/json'}
         else:
             return json.dumps({
                 'success': False,
-                'message': 'No active device available playing music'
-            }), 404, {'ContentType': 'application/json'}
-
+                'message': 'No active device available. Plese open you Spotify App'
+            }), 500, {'ContentType': 'application/json'}
 
 # https://developer.spotify.com/console/get-users-available-devices/#
 # GET METHOD : https://api.spotify.com/v1/me/player/devices
@@ -159,7 +177,8 @@ def get_device():
     # create request
     response = requests.get(headers=headers, url="https://api.spotify.com/v1/me/player/devices")
     # check required values
-    assert response.status_code == 200, response.content
+    if not response.status_code == 200:
+        return None
     response = response.json()
     # for each playlist extract track id
     if len(response['devices']) > 0:
@@ -184,7 +203,8 @@ def play_track(uri_track, device):
     # create request
     response = requests.put(headers=headers, data=json.dumps(params), url="https://api.spotify.com/v1/me/player/play?device_id=" + str(device['id']))
     # check required values
-    assert response.status_code == 204
+    if not response.status_code == 204:
+        return False
     return True
 
 # FOR SOLE PREMIUM ACCOUNTS!
@@ -195,7 +215,11 @@ def play_track(uri_track, device):
 def pause():
     if (request.method == "POST"):
         # check request value
-        assert request.values.get('token')
+        if not request.values.get('token'):
+            return json.dumps({
+                'success': False,
+                'message': 'Token Expired! Refresh your Token'
+            }), 500, {'ContentType': 'application/json'}
         # store token
         session['token'] = request.values.get('token')
         # get device
@@ -206,7 +230,11 @@ def pause():
             # create request
             response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/pause?device_id=" + str(device['id']))
             # check required values
-            assert response.status_code == 204
+            if not response.status_code == 204:
+                return json.dumps({
+                    'success': False,
+                    'message': 'You need a Spotify Premium Account'
+                }), 500, {'ContentType': 'application/json'}
             return json.dumps({
                 'success': True,
             }), 200, {'ContentType': 'application/json'}
@@ -214,7 +242,7 @@ def pause():
             return json.dumps({
                 'success': False,
                 'message': 'No active device available pause music'
-            }), 404, {'ContentType': 'application/json'}
+            }), 500, {'ContentType': 'application/json'}
 
 # FOR SOLE PREMIUM ACCOUNTS!
 # https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/
@@ -224,7 +252,11 @@ def pause():
 def play():
     if (request.method == "POST"):
         # check request value
-        assert request.values.get('token')
+        if not request.values.get('token'):
+            return json.dumps({
+                'success': False,
+                'message': 'Token Expired! Refresh your Token'
+            }), 500, {'ContentType': 'application/json'}
         # store token
         session['token'] = request.values.get('token')
         # get device
@@ -235,7 +267,11 @@ def play():
             # create request
             response = requests.put(headers=headers, url="https://api.spotify.com/v1/me/player/play?device_id=" + str(device['id']))
             # check required values
-            assert response.status_code == 204
+            if not response.status_code == 204:
+                return json.dumps({
+                    'success': False,
+                    'message': 'You need a Spotify Premium Account'
+                }), 500, {'ContentType': 'application/json'}
             return json.dumps({
                 'success': True,
             }), 200, {'ContentType': 'application/json'}
@@ -243,7 +279,7 @@ def play():
             return json.dumps({
                 'success': False,
                 'message': 'No active device available playing music'
-            }), 404, {'ContentType': 'application/json'}
+            }), 500, {'ContentType': 'application/json'}
 
 
 def get_tracks():
@@ -252,50 +288,54 @@ def get_tracks():
     # create request
     response = requests.get(headers=headers, url="https://api.spotify.com/v1/me/playlists")
     # check required values
-    assert response.status_code == 200, response.content
-    answer = response.json()
-    # collect playlists
-    playlist_links = []
-    # for each playlist extract playlist reference
-    for playlist in answer['items']:
-        tracks = playlist['tracks']
-        if (tracks['total'] > 0):  # exclusion of empty playlists
-            playlist_links.append(tracks['href'])  # links are already unique
-    # collect tracks
-    track_ids = []
-
-    if True:
-        response = requests.get(headers=headers, url="https://api.spotify.com/v1/playlists/" + playlist_id_default)
-        # check required values
-        assert response.status_code == 200, response.content
-        for track in response.json()['tracks']['items']:
-            track_ids.append(track['track']['id'])
+    if not response.status_code == 200:
+        return None
     else:
-        # for each playlist, retrieve the ids of all the songs contained in it
-        params = {'fields': 'items(track(id))'}
-        for playlist_link in playlist_links:
-            response = requests.get(headers=headers, url=playlist_link, params=params)
-            # check required values
-            assert response.status_code == 200, response.content
-            for track in response.json()['items']:
-                track_ids.append(track['track']['id'])
-            time.sleep(0.005)  # delay among each playlist request
-    # truncate track_ids quantity to maximum value (100)
-    track_ids = np.unique(track_ids)
-    np.random.shuffle(track_ids)
-    if (len(track_ids) > 100):
-        track_ids = track_ids[0:99]
-    # convert track_ids to string
-    track_ids_str = np.array2string(track_ids, separator=',').translate({ord(i): None for i in "[] '\n"})
-    # create request
-    params = {'ids': track_ids_str}
-    response = requests.get(headers=headers, url='https://api.spotify.com/v1/audio-features', params=params)
-    # check required values
-    assert response.status_code == 200, response.content
-    # tracks information
-    tracks_descriptors = response.json()['audio_features']
+        answer = response.json()
+        # collect playlists
+        playlist_links = []
+        # for each playlist extract playlist reference
+        for playlist in answer['items']:
+            tracks = playlist['tracks']
+            if (tracks['total'] > 0):  # exclusion of empty playlists
+                playlist_links.append(tracks['href'])  # links are already unique
+        # collect tracks
+        track_ids = []
 
-    return tracks_descriptors
+        if True:
+            response = requests.get(headers=headers, url="https://api.spotify.com/v1/playlists/" + playlist_id_default)
+            # check required values
+            if not response.status_code == 200:
+                return None
+            for track in response.json()['tracks']['items']:
+                track_ids.append(track['track']['id'])
+        else:
+            # for each playlist, retrieve the ids of all the songs contained in it
+            params = {'fields': 'items(track(id))'}
+            for playlist_link in playlist_links:
+                response = requests.get(headers=headers, url=playlist_link, params=params)
+                # check required values
+                if not response.status_code == 200:
+                    return None
+                for track in response.json()['items']:
+                    track_ids.append(track['track']['id'])
+                time.sleep(0.005)  # delay among each playlist request
+        # truncate track_ids quantity to maximum value (100)
+        track_ids = np.unique(track_ids)
+        np.random.shuffle(track_ids)
+        if (len(track_ids) > 100):
+            track_ids = track_ids[0:99]
+        # convert track_ids to string
+        track_ids_str = np.array2string(track_ids, separator=',').translate({ord(i): None for i in "[] '\n"})
+        # create request
+        params = {'ids': track_ids_str}
+        response = requests.get(headers=headers, url='https://api.spotify.com/v1/audio-features', params=params)
+        # check required values
+        if not response.status_code == 200:
+            return None
+        # tracks information
+        tracks_descriptors = response.json()['audio_features']
+        return tracks_descriptors
 
 
 # input-structures
@@ -321,31 +361,31 @@ def choose_track(emo, tracks_descriptors):
     # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], danceability [0,1] - filtering
     print(emo)
     tb_filtered = tracks_descriptors.copy()
-    
+
     # emo dependent predicative constraint definition for filtering
     if (emo != 'neutral'):
         if (emo == 'anger' or emo == 'disgust' or emo == 'contempt'): # fast saw, red
             criteria = lambda t : (t['valence'] < 0.4 and
-                t['mode'] == 0 and 
-                t['tempo'] > 110 and t['tempo'] < 170 and
-                t['energy'] > 0.7)
+                                   t['mode'] == 0 and
+                                   t['tempo'] > 110 and t['tempo'] < 170 and
+                                   t['energy'] > 0.7)
         elif (emo == 'fear'): # slow saw, blue
             criteria = lambda t : (t['valence'] < 0.4 and
-                t['mode'] == 0 and 
-                t['tempo'] > 80 and t['tempo'] < 110 and
-                t['energy'] > 0.7)
+                                   t['mode'] == 0 and
+                                   t['tempo'] > 80 and t['tempo'] < 110 and
+                                   t['energy'] > 0.7)
         elif (emo == 'sadness'): # slow sine, blue
             criteria = lambda t : (t['valence'] < 0.4 and
-                t['mode'] == 0 and 
-                t['tempo'] > 80 and t['tempo'] < 110 and
-                t['energy'] < 0.7)
+                                   t['mode'] == 0 and
+                                   t['tempo'] > 80 and t['tempo'] < 110 and
+                                   t['energy'] < 0.7)
         elif (emo == 'happiness' or emo == 'surprise'): # fast sine, yellow
-            criteria = lambda t : (t['valence'] > 0.6 and t['mode'] == 1 and 
-                t['tempo'] > 100 and t['tempo'] < 150 and 
-                t['energy'] > 0.6 and 
-                t['danceability'] > 0.6)
+            criteria = lambda t : (t['valence'] > 0.6 and t['mode'] == 1 and
+                                   t['tempo'] > 100 and t['tempo'] < 150 and
+                                   t['energy'] > 0.6 and
+                                   t['danceability'] > 0.6)
         tb_filtered = [t for t in tb_filtered if (criteria(t))]
-    
+
     if (len(tb_filtered) > 0):
         print('________________________________________________________________')
         print(tb_filtered)
@@ -358,7 +398,7 @@ def choose_track(emo, tracks_descriptors):
 
 def random_emotions():
     ret = {'anger': 0, 'contempt': 0, 'disgust': 0, 'fear': 0, 'happiness': 0,
-        'neutral': 0, 'sadness': 0, 'surprise': 0}
+           'neutral': 0, 'sadness': 0, 'surprise': 0}
     ret[np.random.choice(list(ret.keys()))] = 1
     return ret
 

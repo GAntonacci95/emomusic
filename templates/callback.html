@@ -64,6 +64,7 @@
                         $('.play').hide();
                         $(".load").hide();
                         $(".pause").show();
+                        $('#error').text('');
                     }
                 });
 
@@ -72,9 +73,7 @@
                     emotion = 'anger';
                     bkg_color = '#FF846F';
                     // Log the error to the console
-                    console.error("The following error occurred: "+
-                        response.responseJSON.message
-                    );
+                    $('#error').text(response.responseJSON.message);
                 });
             });
         }
@@ -109,6 +108,7 @@
                     $(".load").hide();
                     // activate animation
                     loop();
+                    $('#error').text('');
                 });
 
                 // Callback handler that will be called on failure
@@ -116,7 +116,7 @@
                     $('.next').show();
                     $(".load").hide();
                     // Log the error to the console
-                    console.error("Ops! We cannot skip the song");
+                    $('#error').text(response.responseJSON.message);
                 });
             });
 
@@ -140,6 +140,7 @@
                     $(".load").hide();
                     // activate animation
                     loop();
+                    $('#error').text('');
                 });
 
                 // Callback handler that will be called on failure
@@ -147,7 +148,7 @@
                     $('.play').show();
                     $(".load").hide();
                     // Log the error to the console
-                    console.error("Ops! We cannot resume the playback");
+                    $('#error').text(response.responseJSON.message);
                 });
             });
 
@@ -171,7 +172,7 @@
                     $(".load").hide();
                     // slow down the animation
                     noLoop();
-
+                    $('#error').text('');
                 });
 
                 // Callback handler that will be called on failure
@@ -179,7 +180,7 @@
                     $('.pause').show();
                     $(".load").hide();
                     // Log the error to the console
-                    console.error("Ops! We cannot pause the playback");
+                    $('#error').text(response.responseJSON.message);
                 });
             });
         });
@@ -194,6 +195,7 @@
     <div id="title">
         <h1><span>emo</span>Music</h1>
         <h3>Emotion recognition player manager</h3>
+        <p id="error"></p>
     </div>
     <div id="camera"></div>
 </div>
