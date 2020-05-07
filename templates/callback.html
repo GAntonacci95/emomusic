@@ -22,6 +22,7 @@
         let emotion = "neutral";
         let audio = 'undefined';
         let bkg_color = 'transparent';
+        let flag_waiter = false;
 
         function getToken() {
             return window.location.href.substring(44, 230);
@@ -31,50 +32,18 @@
             // take snapshot and get image data
             Webcam.snap( function(data_uri) {
                 // send image
-                request = $.ajax({
-                    url: "/emotion",
-                    type: "post",
-                    data: {
-                        "photo" : data_uri,
-                        "token" : getToken()
-                    },
-                    dataType: "json"
-                });
-
-                // Callback handler that will be called on success
-                request.done(function (response){
-                    if(response.emotion !== 'undefined') {
-                        emotion = response.emotion;
-                        audio = response.audio_features;
-                        if (emotion === 'neutral') {
-                            bkg_color = '#A45AE8';
-                        } else if (emotion === 'happiness' || emotion === 'surprise') {
-                            bkg_color = '#E8C75A';
-                        } else if (emotion === 'fear' || emotion === 'anger'){
-                            bkg_color = '#FF846F';
-                        } else if (emotion === 'sadness' || emotion === 'contempt'){
-                            bkg_color = '#6BDBFF';
-                        } else if (emotion === 'disgust') {
-                            bkg_color = '#79FF63';
-                        } else {
-                            bkg_color = 'transparent';
-                        }
-                        // TODO: efficient wave-shape definition?
-                        f = map(audio.tempo, 60, 170, 0.2, 2);
-                        $('.play').hide();
-                        $(".load").hide();
-                        $(".pause").show();
-                        $('#error').text('');
-                    }
-                });
-
-                // Callback handler that will be called on failure
-                request.fail(function (response){
-                    emotion = 'anger';
-                    bkg_color = '#FF846F';
-                    // Log the error to the console
-                    $('#error').text(response.responseJSON.message);
-                });
+                if (!flag_waiter) {
+                  flag_waiter = !flag_waiter;
+                  request = $.ajax({
+                      url: "/emotion",
+                      type: "post",
+                      data: {
+                          "photo" : data_uri,
+                          "token" : getToken()
+                      },
+                      dataType: "json"
+                  });
+                }
             });
         }
 
@@ -90,13 +59,49 @@
                 image_format: 'jpeg',
                 jpeg_quality: 90
             });
-            Webcam.attach( '#camera' );
-            // 2 seconds after document ready snap webcam
+            Webcam.attach('#camera');
+            // 4 seconds after document ready snap webcam
             setTimeout(() => {
                 uploadImage();
+                // Callback handler that will be called on success
+                request.done(function (response){
+                    if(response.emotion !== 'undefined') {
+                        flag_waiter = !flag_waiter;
+                        emotion = response.emotion;
+                        audio = response.audio_features;
+                        $('#suggestion').text('');
+                        if (emotion === 'neutral') {
+                            bkg_color = '#A45AE8';
+                        } else if (emotion === 'happiness' || emotion === 'surprise') {
+                            bkg_color = '#E8C75A';
+                        } else if (emotion === 'fear' || emotion === 'anger'){
+                            bkg_color = '#FF846F';
+                        } else if (emotion === 'sadness' || emotion === 'contempt'){
+                            bkg_color = '#6BDBFF';
+                            $('#suggestion').text("Feel sad? Try to smile and skip to the next song!");
+                        } else if (emotion === 'disgust') {
+                            bkg_color = '#79FF63';
+                        } else {
+                            bkg_color = 'transparent';
+                        }
+                        f = map(audio.tempo, 60, 170, 0.2, 3);
+                        $('.play').hide();
+                        $(".load").hide();
+                        $(".pause").show();
+                        $('#error').text('');
+                    }
+                });
+                // Callback handler that will be called on failure
+                request.fail(function (response){
+                    flag_waiter = !flag_waiter;
+                    emotion = 'anger';
+                    bkg_color = '#FF846F';
+                    // Log the error to the console
+                    $('#error').text(response.responseJSON.message);
+                });
             }, 4000);
 
-            //play button
+            //next button
             $('.next').click(function(){
                 $('.next').hide();
                 $(".load").show();
@@ -104,6 +109,7 @@
                 uploadImage();
                 // Callback handler that will be called on success
                 request.done(function (response){
+                    flag_waiter = !flag_waiter;
                     $('.next').show();
                     $(".load").hide();
                     // activate animation
@@ -113,6 +119,7 @@
 
                 // Callback handler that will be called on failure
                 request.fail(function (response){
+                    flag_waiter = !flag_waiter;
                     $('.next').show();
                     $(".load").hide();
                     // Log the error to the console
@@ -196,6 +203,7 @@
         <h1><span>emo</span>Music</h1>
         <h3>Emotion recognition player manager</h3>
         <p id="error"></p>
+        <p id="suggestion"></p>
     </div>
     <div id="camera"></div>
 </div>

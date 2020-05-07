@@ -15,7 +15,7 @@ except ImportError:
 api_key_azure = os.environ['AZURE_APIKEY']
 uri_azure = os.environ['AZURE_URI']
 def USING_AZURE():
-    return True # TODO: True for the exam
+    return True
 
 # default playlist
 playlist_id_default = "2pHddKK7ZpHu6YUVNkZEWr"
@@ -104,14 +104,16 @@ def emotion():
                 response = requests.post(uri_azure, params=params, headers=headers, data=photo_byte)
                 response_json = response.json()
                 # check azure response and understand emotion
-                if not response_json[0]:
+                try:
+                    response_json[0]
+                    # save smile and emotions results
+                    emotions = response_json[0]['faceAttributes']['emotion']
+                except IndexError:
+                    # handle this
                     return json.dumps({
                         'success': False,
                         'message': 'Error on recognizing emotion'
                     }), 500, {'ContentType': 'application/json'}
-
-                # save smile and emotions results
-                emotions = response_json[0]['faceAttributes']['emotion']
             else:
                 emotions = random_emotions()
 
@@ -355,11 +357,8 @@ def get_tracks():
 #           ...
 #           }
 #       ]
-# TODO: setup accordante della grafica - Adri
-# (where tb_filtered is a set of songs which should fit the current emo)
 def choose_track(emo, tracks_descriptors):
     # mode [0|1], valence [0,1], tempo [bpm], energy [0,1], danceability [0,1] - filtering
-    print(emo)
     tb_filtered = tracks_descriptors.copy()
 
     # emo dependent predicative constraint definition for filtering
@@ -387,11 +386,7 @@ def choose_track(emo, tracks_descriptors):
         tb_filtered = [t for t in tb_filtered if (criteria(t))]
 
     if (len(tb_filtered) > 0):
-        print('________________________________________________________________')
-        print(tb_filtered)
         chosen = np.random.choice(tb_filtered)
-        print('________________________________________________________________')
-        print(chosen)
         return chosen
     else:
         print('No track found, please adjust the implementation/thresholds or enlarge your playlist =)')
@@ -403,4 +398,9 @@ def random_emotions():
     return ret
 
 def pick_max_emo(emotions):
-    return list(emotions.keys())[np.argmax(list(emotions.values()))]
+    pick = list(emotions.keys())[np.argmax(list(emotions.values()))]
+    # we are always neutral so try to avoid cyclic situation
+    if str(pick) in ('neutral') and emotions['neutral'] > 0.9:
+        del emotions['neutral']
+        pick = list(emotions.keys())[np.argmax(list(emotions.values()))]
+    return pick

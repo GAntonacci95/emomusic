@@ -58,7 +58,7 @@ function calcWave() {
       y = (x * amplitude) % 250; // saw
       break;
     case "neutral":
-      y = 1  ; // line
+      y = sin(x) * amplitude; // sine
       break;
     default:
       y = (x * amplitude) % 250; // saw

@@ -63,6 +63,10 @@ html {
 #title h1 span {
     font-weight: 400;
 }
+#title p {
+  margin-left: 2%;
+  font-size: 2em;
+}
 #services {
     position: absolute;
     top: 28vh;
@@ -74,7 +78,7 @@ html {
     margin-bottom: 35px;
 }
 #services p {
-    font-size: 4px;
+    font-size: 15px;
     margin-top: 40px;
 }
 #spotify-button {
