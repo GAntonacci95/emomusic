@@ -1,5 +1,4 @@
 ﻿.idea
 __pycache__
-yolorun.sh
-.env
+__init__.pyc
 flask_app.pyc
