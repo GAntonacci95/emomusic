@@ -2,18 +2,18 @@
 
 Our methods in exploring, experiencing, and getting creative with music have changed drastically over time. And today we are surrounded by all types of new and adapting technology, something not familiar to us even 10 years ago.
 
-Why don't we use more technology to our advantage when it comes to music? How can we better our current methods in choosing music, making the experience more personal and immersive.
+Why don't we use more technology to our advantage when it comes to music? How can we better our current methods in choosing music, making the experience more personal and immersive?
 
 ## EmoMusic (Emotional Music)
 
 With EmoMusic we aim to give the user a finer tuned experience to what they're feeling. EmoMusic is not just a visual addition to Spotify but:
 
-- connects to your Webcam
-- detects your current emotional state
-- plays music representing your emotions
-- Uses features of the selected music to drive a correlating visual, personalizing experience
+- Connects to your Webcam
+- Detects your current emotional state
+- Plays music from your personal Spotify account that represents your current emotions
+- Uses features of the selected music to drive a correlating visual, personalizing your experience
 
-In our Prototype we allowed premium Spotify users could log in, capture an image of themselves, submit to detect their emotion, and a song and correlating color would execute to match. The new and improved EmoMusic now includes control over your Spotify directly from our application (Pause/Play, Skip Functions) and now automatically upon pressing play your emotion is detected. EmoMusic graphics have been revamped drawing different signals to match your emotion, as well as a coordinating gradient color to really bring together your experience.
+In our prototype we allowed premium Spotify users to log in, capture an image of themselves, submit to detect their emotion, and a song and correlating color would execute to match. The new and improved EmoMusic now includes control over your Spotify directly from our application (Pause/Play, Skip Functions) and now automatically upon pressing play your emotion is detected. EmoMusic graphics have been revamped drawing different signals to match your emotion, as well as a coordinating gradient color to set the mood.
 
 How?
 
@@ -64,4 +64,4 @@ At this point your server will be running on your local machine [127.0.0.1:5000]
 
 **Reminder**
 
-Before using EmoMusic turn off any application using your webcam (Skype, Zoom, Others.) this can cause conflict using your cam
+Before using EmoMusic turn off any application using your webcam (Skype, Zoom, Others.) this can cause conflict with using your camera
